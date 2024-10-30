@@ -8,10 +8,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.util.Comparator.*;
+import static java.util.stream.Collectors.toList;
 
 
 @SpringBootTest
@@ -311,7 +315,7 @@ class TiendaApplicationTests {
 	void test20() {
 		var listProds = prodRepo.findAll();
 		var result = listProds.stream()
-				.filter(p->p.getNombre().contains("Portátil"))
+				.filter(p->p.getNombre().contains("Port[a|á]til"))
 				.toList();
 		result.forEach(System.out::println);
 	}
@@ -350,7 +354,10 @@ class TiendaApplicationTests {
 	@Test
 	void test23() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.sorted(Comparator.comparing(t->t.getFabricante().getNombre()))
+				.toList();
+		result.forEach(System.out::println);
 	}
 	
 	/**
@@ -359,7 +366,18 @@ class TiendaApplicationTests {
 	@Test
 	void test24() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		record tupla(String nombre, Double precio,String nombreFab){};
+//		var pro = listProds.stream()
+//				.sorted(comparing(p->p.getFabricante().getNombre()))
+//				.limit(1)
+//				.map(t->new tupla(t.getNombre(),t.getPrecio(),t.getFabricante().getNombre()))
+//				.toList();
+		Producto p1 = null;
+		Optional pO=listProds.stream()
+				.sorted(comparing(p->p.getFabricante().getNombre()))
+				.limit(1)
+				.findFirst();
+		System.out.println(pO.get());
 	}
 	
 	/**
