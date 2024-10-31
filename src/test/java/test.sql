@@ -47,10 +47,10 @@
 -- 21 ----------------------------------------------------------
     SELECT * FROM producto WHERE nombre LIKE'%Monitor%' AND precio < 215;
 -- 22 ----------------------------------------------------------
+    SELECT nombre, precio FROM producto WHERE precio >= 180 ORDER BY precio DESC, nombre ASC;
+-- 23 ----------------------------------------------------------
     SELECT p.nombre, p.precio, f.nombre FROM producto p JOIN fabricante f
     ON p.codigo_fabricante = f.codigo ORDER BY f.nombre;
--- 23 ----------------------------------------------------------
-
 -- 24 ----------------------------------------------------------
 
 -- 25 ----------------------------------------------------------

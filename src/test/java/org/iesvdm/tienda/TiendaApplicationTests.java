@@ -279,7 +279,7 @@ class TiendaApplicationTests {
 				.toList();
 
 		result.forEach(System.out::println);
-		result.forEach(p->codFabs.contains(p.getFabricante()));
+		result.forEach(p->Assertions.assertTrue(codFabs.contains(p.getFabricante().getCodigo())));
 
 	}
 	
@@ -293,6 +293,7 @@ class TiendaApplicationTests {
 				.map(p -> {p.setPrecio(p.getPrecio()*100);return p;})
 				.toList();
 		result.forEach(p->System.out.println("Nombre: "+p.getNombre()+" - Precio: "+p.getPrecio()));
+		Assertions.assertEquals(result.getFirst().getPrecio(), listProds.getFirst().getPrecio());
 	}
 	
 	
@@ -330,6 +331,7 @@ class TiendaApplicationTests {
 				.filter(p->p.getNombre().contains("Monitor") && p.getPrecio()<215)
 				.toList();
 		result.forEach(System.out::println);
+		result.forEach(p->Assertions.assertTrue(p.getPrecio()<215&&p.getNombre().contains("Monitor")));
 	}
 	
 	/**
@@ -345,6 +347,7 @@ class TiendaApplicationTests {
 						.thenComparing(Producto::getNombre))
 				.toList();
 		result.forEach(p->System.out.println("Nombre: "+p.getNombre()+" - Precio: "+p.getPrecio()));
+		result.forEach(p->Assertions.assertTrue(p.getPrecio()>=180));
 	}
 	
 	/**
@@ -356,8 +359,10 @@ class TiendaApplicationTests {
 		var listProds = prodRepo.findAll();
 		var result = listProds.stream()
 				.sorted(Comparator.comparing(t->t.getFabricante().getNombre()))
+				.map(f->f.getNombre() +" - "+ f.getPrecio() +" - "+ f.getFabricante().getNombre())
 				.toList();
 		result.forEach(System.out::println);
+		Assertions.assertEquals(result.getFirst(), "Monitor 24 LED Full HD - 202.0 - Asus");
 	}
 	
 	/**
