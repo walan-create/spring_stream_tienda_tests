@@ -349,9 +349,9 @@ class TiendaApplicationTests {
 		result.forEach(p->System.out.println("Nombre: "+p.getNombre()+" - Precio: "+p.getPrecio()));
 		result.forEach(p->Assertions.assertTrue(p.getPrecio()>=180));
 	}
-	
+
 	/**
-	 * 23. Devuelve una lista con el nombre del producto, precio y nombre de fabricante de todos los productos de la base de datos. 
+	 * 23. Devuelve una lista con el nombre del producto, precio y nombre de fabricante de todos los productos de la base de datos.
 	 * Ordene el resultado por el nombre del fabricante, por orden alfabético.
 	 */
 	@Test
@@ -364,20 +364,18 @@ class TiendaApplicationTests {
 		result.forEach(System.out::println);
 		Assertions.assertEquals(result.getFirst(), "Monitor 24 LED Full HD - 202.0 - Asus");
 	}
-	
+
 	/**
 	 * 24. Devuelve el nombre del producto, su precio y el nombre de su fabricante, del producto más caro.
 	 */
 	@Test
 	void test24() {
 		var listProds = prodRepo.findAll();
-		record tupla(String nombre, Double precio,String nombreFab){};
-		var pro = listProds.stream()
-				.sorted(comparing(p->p.getFabricante().getNombre()))
-				.limit(1)
-				.map(t->new tupla(t.getNombre(),t.getPrecio(),t.getFabricante().getNombre()))
-				.toList();
-
+		record tupla1(String nombre, Double precio,String nombreFab){};
+		var result = listProds.stream()
+				.max(comparing(p->p.getPrecio()))
+				.map(t->new tupla1(t.getNombre(),t.getPrecio(),t.getFabricante().getNombre()));
+		System.out.println(result.orElse(null));
 	}
 	
 	/**
@@ -386,7 +384,7 @@ class TiendaApplicationTests {
 	@Test
 	void test25() {
 		var listProds = prodRepo.findAll();
-		//TODO	
+
 	}
 	
 	/**
@@ -395,7 +393,12 @@ class TiendaApplicationTests {
 	@Test
 	void test26() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		Set<String> fabs = Set.of("Asus","Hewlett-Packard","Seagate");
+		var result = listProds.stream()
+				.filter(p-> fabs.contains(p.getFabricante().getNombre()))
+				.toList();
+		result.forEach(System.out::println);
+		Assertions.assertEquals(result.size(), 5);
 	}
 	
 	/**
@@ -415,7 +418,9 @@ Monitor 27 LED Full HD |199.25190000000003|Asus
 	@Test
 	void test27() {
 		var listProds = prodRepo.findAll();
-		//TODO
+
+
+
 	}
 	
 	/**
