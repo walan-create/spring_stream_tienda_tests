@@ -367,17 +367,12 @@ class TiendaApplicationTests {
 	void test24() {
 		var listProds = prodRepo.findAll();
 		record tupla(String nombre, Double precio,String nombreFab){};
-//		var pro = listProds.stream()
-//				.sorted(comparing(p->p.getFabricante().getNombre()))
-//				.limit(1)
-//				.map(t->new tupla(t.getNombre(),t.getPrecio(),t.getFabricante().getNombre()))
-//				.toList();
-		Producto p1 = null;
-		Optional pO=listProds.stream()
+		var pro = listProds.stream()
 				.sorted(comparing(p->p.getFabricante().getNombre()))
 				.limit(1)
-				.findFirst();
-		System.out.println(pO.get());
+				.map(t->new tupla(t.getNombre(),t.getPrecio(),t.getFabricante().getNombre()))
+				.toList();
+
 	}
 	
 	/**
