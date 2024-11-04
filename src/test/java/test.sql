@@ -55,16 +55,88 @@
     SELECT p.nombre, p.precio, f.nombre FROM producto p
         JOIN fabricante f ON p.codigo_fabricante = f.codigo ORDER BY p.precio DESC LIMIT 1;
 -- 25 ----------------------------------------------------------
-
+    SELECT * FROM producto p JOIN fabricante f
+        ON p.codigo_fabricante = f.codigo
+                WHERE f.nombre LIKE 'Crucial' AND p.precio>200;
 -- 26 ----------------------------------------------------------
---    SELECT * FROM producto WHERE p.nombre LIKE 'Asus'OR'Hewlett-Packard'OR'Seagate';
+    SELECT p.*, f.nombre NombreFabricante FROM producto p
+        JOIN fabricante f ON p.codigo_fabricante=f.codigo
+            WHERE f.nombre LIKE '%Asus%' OR f.nombre LIKE '%Hewlett-Packard%' OR f.nombre LIKE '%Seagate%';
 -- 27 ----------------------------------------------------------
-
+    SELECT p.nombre, p.precio, f.nombre as nombreFabricante FROM producto p
+        JOIN fabricante f ON p.codigo_fabricante=f.codigo
+            WHERE p.precio>=180
+                ORDER BY p.precio DESC, p.nombre;
 -- 28 ----------------------------------------------------------
-
+    SELECT f.nombre Fabricante, p.nombre Producto
+    FROM fabricante f
+    LEFT JOIN producto p ON f.codigo = p.codigo_fabricante
+    ORDER BY f.nombre;
 -- 29 ----------------------------------------------------------
-
+    SELECT f.* FROM fabricante f
+    WHERE f.codigo NOT IN (SELECT producto.codigo_fabricante FROM producto );
 -- 30 ----------------------------------------------------------
+    SELECT COUNT(*) Total FROM producto;
+-- 31 ----------------------------------------------------------
+    SELECT COUNT(*) Total FROM fabricante f
+    WHERE f.codigo IN (SELECT p.codigo_fabricante FROM producto p);
+-- 32 ----------------------------------------------------------
+    SELECT AVG(precio) Total FROM producto;
+-- 33 ----------------------------------------------------------
+    SELECT MIN(precio) Minimo FROM producto;
+-- 34 ----------------------------------------------------------
+    SELECT SUM(precio) Suma FROM producto;
+-- 35 ----------------------------------------------------------
+    SELECT COUNT(*) AsusCantProductos FROM producto p
+    JOIN fabricante f ON p.codigo_fabricante = f.codigo
+    WHERE f.nombre LIKE 'Asus' ;
+-- 36 ----------------------------------------------------------
+    SELECT AVG(p.precio) FROM producto p
+    JOIN fabricante f ON p.codigo_fabricante = f.codigo
+    WHERE f.nombre LIKE 'Asus';
+-- 37 ----------------------------------------------------------
+    SELECT MAX(p.precio) Max, MIN(p.precio) Min, AVG(p.precio), SUM(p.precio) Total FROM producto p
+    JOIN fabricante f ON p.codigo_fabricante = f.codigo
+    WHERE f.nombre LIKE 'Crucial'
+-- 38 ----------------------------------------------------------
+
+-- 39 ----------------------------------------------------------
+
+-- 40 ----------------------------------------------------------
+
+-- 41 ----------------------------------------------------------
+
+-- 42 ----------------------------------------------------------
+
+-- 43 ----------------------------------------------------------
+
+-- 44 ----------------------------------------------------------
+
+-- 45 ----------------------------------------------------------
+
+-- 46 ----------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

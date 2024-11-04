@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.Comparator.*;
 import static java.util.stream.Collectors.toList;
@@ -358,7 +359,7 @@ class TiendaApplicationTests {
 	void test23() {
 		var listProds = prodRepo.findAll();
 		var result = listProds.stream()
-				.sorted(Comparator.comparing(t->t.getFabricante().getNombre()))
+				.sorted(comparing(t->t.getFabricante().getNombre()))
 				.map(f->f.getNombre() +" - "+ f.getPrecio() +" - "+ f.getFabricante().getNombre())
 				.toList();
 		result.forEach(System.out::println);
@@ -384,7 +385,11 @@ class TiendaApplicationTests {
 	@Test
 	void test25() {
 		var listProds = prodRepo.findAll();
-
+		var result = listProds.stream()
+				.filter(p-> p.getFabricante().getNombre().equalsIgnoreCase("crucial")&&p.getPrecio()>200)
+				.toList();
+		result.forEach(System.out::println);
+		result.forEach(p->Assertions.assertTrue(p.getPrecio()>200));
 	}
 	
 	/**
@@ -418,8 +423,39 @@ Monitor 27 LED Full HD |199.25190000000003|Asus
 	@Test
 	void test27() {
 		var listProds = prodRepo.findAll();
+        var result = listProds.stream()
+                .filter(p->p.getPrecio()>=180)
+                .sorted(comparing(Producto::getPrecio,reverseOrder())
+						.thenComparing(Producto::getNombre))
+                .toList();
 
+		//Con los siguientes streams obtenemos la longitud máxima de cada campo
+        int longitudMaxNombreProd = result.stream()
+				//Map para convertir y quedaronos unicamente con la longitud
+				.map(p -> p.getNombre().length())
+				//Sacamos el maximo
+				.max(Integer::compare)
+				//En caso de que el Optional esté vacio devolvemos 0
+				.orElse(0);
+		int longitudMaxPrecio = result.stream()
+				.map(p -> String.valueOf(p.getPrecio()).length())
+				.max(Integer::compare)
+				.orElse(0);
+		int longitudMaxNombreFab = result.stream()
+				.map(p -> p.getFabricante().getNombre().length())
+				.max(Integer::compare)
+				.orElse(0);
 
+		//Imprimimos la cabecera
+		//el %- seguido de un número indica el número de caracteres que se van a imprimir
+		// y la s | %s indica que se va a imprimir un string y luego una barra vertical
+		System.out.printf("%-" + longitudMaxNombreProd + "s | %-" + longitudMaxPrecio + "s | %s%n", "Producto", "Precio", "Fabricante");
+		//El +6 que se pone al final es para compensar los caracteres de las barras verticales y los espacios en blanco
+		System.out.println("-".repeat(longitudMaxNombreProd + longitudMaxPrecio + longitudMaxNombreFab + 6));
+
+		//Imprimimos cada producto en la tabla formateada
+		result.forEach(p -> System.out.printf("%-" + longitudMaxNombreProd + "s | %-" + longitudMaxPrecio + "s | %s%n",
+				p.getNombre(), p.getPrecio(), p.getFabricante().getNombre()));
 
 	}
 	
@@ -438,7 +474,17 @@ Fabricante: Lenovo
 
             	Productos:
             	Portátil Ideapd 320
-            	Portátil Yoga 520
+            	Portátil Yoga 520SELECT f.nombre AS Fabricante,
+       GROUP_CONCAT(p.nombre SEPARATOR '\n') AS Productos
+FROM Fabricante f
+LEFT JOIN Producto p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+ORDER BY f.nombre;SELECT f.nombre AS Fabricante,
+       GROUP_CONCAT(p.nombre SEPARATOR '\n') AS Productos
+FROM Fabricante f
+LEFT JOIN Producto p ON f.codigo = p.codigo_fabricante
+GROUP BY f.nombre
+ORDER BY f.nombre;
 
 Fabricante: Hewlett-Packard
 
@@ -480,7 +526,22 @@ Fabricante: Xiaomi
 	@Test
 	void test28() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		//Guardamos los datos que queremos como tabla en un solo String, sin bucles
+		String result = listFabs.stream()
+				.map(f -> {
+					//Con el operador ternario comprobamos si el fabricante tiene productos o no
+					String prods = f.getProductos().isEmpty() ? "\tProductos:\n" : f.getProductos().stream()
+							//Si tiene productos los mapeamos a un string con el nombre del producto
+							.map( p -> "\t\t"+p.getNombre())
+							//Une todas las cadeas de productos en una sola separados por \n (saltos de linea)
+							.collect(Collectors.joining("\n", "\tProductos:\n", ""));
+					//Devolvemos la cadena con el nombre del fabricante y los productos
+					return "Fabricante: "+f.getNombre()+"\n"+prods;
+				})
+				// Une todas las cadenas de fabricantes en una sola cadena, separadas por dos saltos de línea
+				.collect(Collectors.joining("\n\n"));
+		System.out.println(result);
+
 	}
 	
 	/**
@@ -489,7 +550,11 @@ Fabricante: Xiaomi
 	@Test
 	void test29() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.filter(f->f.getProductos().isEmpty())
+				.toList();
+		result.forEach(p->Assertions.assertTrue(p.getProductos().isEmpty()));
+		result.forEach(System.out::println);
 	}
 	
 	/**
@@ -498,7 +563,9 @@ Fabricante: Xiaomi
 	@Test
 	void test30() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.count();
+		Assertions.assertEquals(result, 11);
 	}
 
 	
@@ -508,25 +575,37 @@ Fabricante: Xiaomi
 	@Test
 	void test31() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.map(p->p.getFabricante())
+				.distinct()
+				.count();
+		Assertions.assertEquals(result, 7);
 	}
-	
+
 	/**
 	 * 32. Calcula la media del precio de todos los productos
 	 */
 	@Test
 	void test32() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.mapToDouble(Producto::getPrecio)
+				.average()
+				.orElse(0);
+		Assertions.assertEquals(result, 271.7236363636364);
 	}
-	
+
 	/**
 	 * 33. Calcula el precio más barato de todos los productos. No se puede utilizar ordenación de stream.
 	 */
 	@Test
 	void test33() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.mapToDouble(Producto::getPrecio)
+				.min()
+				.orElse(0);
+		Assertions.assertEquals(result, 59.99);
 	}
 	
 	/**
@@ -535,7 +614,10 @@ Fabricante: Xiaomi
 	@Test
 	void test34() {
 		var listProds = prodRepo.findAll();
-		//TODO	
+		var result = listProds.stream()
+				.mapToDouble(Producto::getPrecio)
+				.sum();
+		Assertions.assertEquals(result,2988.96);
 	}
 	
 	/**
@@ -544,7 +626,10 @@ Fabricante: Xiaomi
 	@Test
 	void test35() {
 		var listProds = prodRepo.findAll();
-		//TODO		
+		var result = listProds.stream()
+				.filter(p->p.getFabricante().getNombre().equalsIgnoreCase("asus"))
+				.count();
+		Assertions.assertEquals(result,2);
 	}
 	
 	/**
@@ -553,7 +638,12 @@ Fabricante: Xiaomi
 	@Test
 	void test36() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.filter(p->p.getFabricante().getNombre().equalsIgnoreCase("asus"))
+				.mapToDouble(Producto::getPrecio)
+				.average()
+				.orElse(0);
+		Assertions.assertEquals(result,223.995);
 	}
 	
 	
@@ -564,7 +654,10 @@ Fabricante: Xiaomi
 	@Test
 	void test37() {
 		var listProds = prodRepo.findAll();
-		//TODO
+		var result = listProds.stream()
+				.filter(p->p.getFabricante().getNombre().equalsIgnoreCase("crucial"))
+				.mapToDouble(Producto::getPrecio)
+				.reduce();
 	}
 	
 	/**
@@ -590,7 +683,20 @@ Hewlett-Packard              2
 	@Test
 	void test38() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.map(f -> new Object() {
+					String nombre = f.getNombre();
+					int numProductos = f.getProductos().size();
+				})
+				.sorted((a, b) -> Integer.compare(b.numProductos, a.numProductos))
+				.map(f -> String.format("%-20s %d", f.nombre, f.numProductos))
+				.collect(Collectors.joining("\n"));
+
+		System.out.println("Fabricante           #Productos");
+		//Este .repeat es para que el caracter se reipa y no escribirlo a mano
+		System.out.println("-".repeat(40));
+		System.out.println(result);
+
 	}
 	
 	/**
@@ -601,7 +707,26 @@ Hewlett-Packard              2
 	@Test
 	void test39() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+
+		var result = listFabs.stream()
+				.map(f -> {
+					Double[] stats = f.getProductos().stream()
+							.map(Producto::getPrecio)
+							.reduce(new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, 0.0}, (acc, precio) -> {
+								acc[0] = Math.min(acc[0], precio); // Precio mínimo
+								acc[1] = Math.max(acc[1], precio); // Precio máximo
+								acc[2] += precio; // Suma de precios
+								acc[3]++; // Conteo de productos
+								return acc;
+							}, (acc1, acc2) -> acc1);
+
+					double avg = stats[3] > 0 ? stats[2] / stats[3] : 0.0; // Calcular promedio
+
+					return String.format("%-20s Min: %-10.2f Max: %-10.2f Avg: %-10.2f", f.getNombre(), stats[0], stats[1], avg);
+				})
+				.collect(Collectors.joining("\n"));
+
+		System.out.println(result);
 	}
 	
 	/**
