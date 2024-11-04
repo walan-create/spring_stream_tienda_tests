@@ -95,26 +95,68 @@
     JOIN fabricante f ON p.codigo_fabricante = f.codigo
     WHERE f.nombre LIKE 'Asus';
 -- 37 ----------------------------------------------------------
-    SELECT MAX(p.precio) Max, MIN(p.precio) Min, AVG(p.precio), SUM(p.precio) Total FROM producto p
+    SELECT MAX(p.precio) Max, MIN(p.precio) Min, AVG(p.precio), COUNT(p.precio) Total FROM producto p
     JOIN fabricante f ON p.codigo_fabricante = f.codigo
-    WHERE f.nombre LIKE 'Crucial'
+    WHERE f.nombre LIKE 'Crucial';
 -- 38 ----------------------------------------------------------
-
+    SELECT f.nombre AS fabricante, COUNT(p.nombre) AS total_productos
+    FROM fabricante f
+         LEFT JOIN producto p ON f.codigo = p.codigo_fabricante
+    GROUP BY f.nombre
+    ORDER BY total_productos DESC;
 -- 39 ----------------------------------------------------------
-
+    SELECT f.nombre, MAX(p.precio) max, MIN(p.precio) min, AVG(p.precio) media
+    FROM fabricante f
+    LEFT JOIN producto p ON f.codigo = p.codigo_fabricante
+    GROUP BY f.nombre;
 -- 40 ----------------------------------------------------------
-
+    SELECT p.codigo_fabricante, MAX(p.precio) max, MIN(p.precio) min, AVG(p.precio) media, COUNT(p.precio) Total
+    FROM fabricante f
+    JOIN producto p on f.codigo = p.codigo_fabricante
+    GROUP BY f.codigo
+    HAVING AVG(p.precio)>=200;
 -- 41 ----------------------------------------------------------
-
+    SELECT f.nombre FROM fabricante f
+    JOIN producto p ON f.codigo = p.codigo_fabricante
+    GROUP BY f.nombre
+    HAVING
+        COUNT(p.nombre)>=2;
 -- 42 ----------------------------------------------------------
-
+    SELECT f.nombre nombreFabricante, COUNT(p.nombre) totalProductos FROM fabricante f
+    JOIN producto p ON f.codigo=p.codigo_fabricante
+    WHERE p.precio>=220
+    GROUP BY f.nombre
+    ORDER BY totalProductos DESC;
 -- 43 ----------------------------------------------------------
-
+    SELECT f.nombre, SUM(p.precio) total FROM fabricante f
+    JOIN producto p ON f.codigo = p.codigo_fabricante
+    GROUP BY f.nombre
+    HAVING SUM(p.precio)>=1000;
 -- 44 ----------------------------------------------------------
-
+    SELECT f.nombre, SUM(p.precio) total FROM fabricante f
+    JOIN producto p ON f.codigo = p.codigo_fabricante
+    GROUP BY f.nombre
+    HAVING SUM(p.precio)>=1000
+    ORDER BY SUM(p.precio);
 -- 45 ----------------------------------------------------------
-
+    SELECT p.nombre Producto, p.precio, f.nombre Fabricante FROm producto p
+    JOIN fabricante f ON p.codigo_fabricante = f.codigo
+    WHERE p.precio = (
+        SELECT MAX(p2.precio) FROM producto p2
+        WHERE p2.codigo_fabricante = f.codigo
+        )
+    ORDER BY
+        f.nombre;
 -- 46 ----------------------------------------------------------
+SELECT p.nombre AS nombreProducto,p.precio AS precioProducto,f.nombre AS nombreFabricante
+FROM producto p
+JOIN fabricante f ON p.codigo_fabricante = f.codigo
+WHERE p.precio >= (
+        SELECT AVG(p2.precio)
+        FROM producto p2
+        WHERE p2.codigo_fabricante = p.codigo_fabricante
+    )
+ORDER BY f.nombre ASC, p.precio DESC;
 
 
 

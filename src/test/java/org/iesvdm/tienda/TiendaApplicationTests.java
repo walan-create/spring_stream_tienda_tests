@@ -656,8 +656,18 @@ Fabricante: Xiaomi
 		var listProds = prodRepo.findAll();
 		var result = listProds.stream()
 				.filter(p->p.getFabricante().getNombre().equalsIgnoreCase("crucial"))
-				.mapToDouble(Producto::getPrecio)
-				.reduce();
+				.map(p -> new Double[]{p.getPrecio(),p.getPrecio(),p.getPrecio(),1.0})
+				.reduce((d, d2) -> new Double[]{
+						Math.min(d[0],d2[0]),
+						Math.max(d[1],d2[1]),
+						d[2]+d2[2],
+						d[3]+d2[3]})
+				.orElse(new Double[]{});
+		Double media = result[3]>0 ? result[2]/result[3] : 0.0;
+		System.out.println("Minimo: "+result[0]);
+		System.out.println("Maximo: "+result[1]);
+		System.out.println("Media: "+media);
+		System.out.println("Total: "+result[3]);
 	}
 	
 	/**
@@ -712,16 +722,15 @@ Hewlett-Packard              2
 				.map(f -> {
 					Double[] stats = f.getProductos().stream()
 							.map(Producto::getPrecio)
-							.reduce(new Double[]{Double.MAX_VALUE, Double.MIN_VALUE, 0.0, 0.0}, (acc, precio) -> {
+							.reduce(new Double[]{Double.MAX_VALUE, 0.0, 0.0, 0.0}, (acc, precio) -> {
 								acc[0] = Math.min(acc[0], precio); // Precio mínimo
 								acc[1] = Math.max(acc[1], precio); // Precio máximo
 								acc[2] += precio; // Suma de precios
 								acc[3]++; // Conteo de productos
 								return acc;
 							}, (acc1, acc2) -> acc1);
-
 					double avg = stats[3] > 0 ? stats[2] / stats[3] : 0.0; // Calcular promedio
-
+					if (stats[3] == 0) { stats[0] = 0.0; stats[1] = 0.0; }
 					return String.format("%-20s Min: %-10.2f Max: %-10.2f Avg: %-10.2f", f.getNombre(), stats[0], stats[1], avg);
 				})
 				.collect(Collectors.joining("\n"));
@@ -736,7 +745,30 @@ Hewlett-Packard              2
 	@Test
 	void test40() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.filter(f->f.getProductos().stream()
+						.mapToDouble(Producto::getPrecio)
+						.average()
+						.orElse(0)>=200)
+				.map(f-> new Object(){
+						int codFab=f.getCodigo();
+						double max=f.getProductos().stream()
+								.mapToDouble(Producto::getPrecio)
+								.max()
+								.orElse(0);
+						double min=f.getProductos().stream()
+								.mapToDouble(Producto::getPrecio)
+								.min()
+								.orElse(0);
+						double media=f.getProductos().stream()
+								.mapToDouble(Producto::getPrecio)
+								.average()
+								.orElse(0);
+						long total = f.getProductos().size();
+				})
+				.collect(Collectors.toList());
+		result.forEach(r->System.out.println("Codigo Fabricante: "+r.codFab+" Max: "+r.max+" Min: "+r.min+" Media: "+r.media+" Total: "+r.total));
+
 	}
 	
 	/**
@@ -745,7 +777,12 @@ Hewlett-Packard              2
 	@Test
 	void test41() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.filter(f->f.getProductos().size()>=2)
+				.map(Fabricante::getNombre)
+				.toList();
+		result.forEach(System.out::println);
+
 	}
 	
 	/**
@@ -755,16 +792,31 @@ Hewlett-Packard              2
 	@Test
 	void test42() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.map(p -> new Object() {
+					String nombreFab = p.getNombre();
+					long numProductos = p.getProductos().stream().filter(p -> p.getPrecio() >= 220).count();
+				})
+				.filter(o -> o.numProductos > 0)
+				.sorted(comparing(f -> f.numProductos,reverseOrder()))
+				.toList();
+		result.forEach(p->System.out.println("Fabricante: "+p.nombreFab+"- Numero de productos: "+p.numProductos));
 	}
-	
 	/**
 	 * 43.Devuelve un listado con los nombres de los fabricantes donde la suma del precio de todos sus productos es superior a 1000 €
 	 */
 	@Test
 	void test43() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.filter(f->f.getProductos().stream().mapToDouble(Producto::getPrecio).sum()>=1000)
+				.map(f->new Object(){
+					String nombreFab = f.getNombre();
+					double sumaTotal = f.getProductos().stream().mapToDouble(Producto::getPrecio).sum();
+				})
+				.toList();
+		result.forEach(f->System.out.println("Fabricante: "+f.nombreFab+"- Suma Total: "+f.sumaTotal));
+
 	}
 	
 	/**
@@ -773,8 +825,17 @@ Hewlett-Packard              2
 	 */
 	@Test
 	void test44() {
+		//En este ejemplo no se ve que esté ordenado porque al pasar el filtro de 1000 como suma total solo queda un fabricante
 		var listFabs = fabRepo.findAll();
-		//TODO	
+		var result = listFabs.stream()
+				.filter(f->f.getProductos().stream().mapToDouble(Producto::getPrecio).sum()>=1000)
+				.map(f->new Object(){
+					String nombreFab = f.getNombre();
+					double sumaTotal = f.getProductos().stream().mapToDouble(Producto::getPrecio).sum();
+				})
+				.sorted(comparing(f->f.sumaTotal))
+				.toList();
+		result.forEach(f->System.out.println("Fabricante: "+f.nombreFab+"- Suma Total: "+f.sumaTotal));
 	}
 	
 	/**
@@ -785,7 +846,28 @@ Hewlett-Packard              2
 	@Test
 	void test45() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result=listFabs.stream()
+				.filter(f->!f.getProductos().isEmpty())
+				.map(f -> {
+					double precio = f.getProductos().stream()
+						.mapToDouble(Producto::getPrecio)
+						.max()
+						.orElse(0);
+					Producto p = f.getProductos().stream()
+							.filter(prod -> prod.getPrecio() == precio)
+							.findFirst().orElse(null);
+					return new Object() {
+						String nombreProducto = p != null ? p.getNombre() : "";
+						double precioProducto = p != null ? p.getPrecio() : 0;
+						String nombreFabricante = f.getNombre();
+					};
+				})
+				.sorted(Comparator.comparing(f -> f.nombreFabricante))
+				.toList();
+
+		result.forEach(p -> System.out.println("Nombre producto: " + p.nombreProducto +
+												" - Precio: " + p.precioProducto +
+												" - Nombre Fabricante: " + p.nombreFabricante));
 	}
 	
 	/**
@@ -795,7 +877,21 @@ Hewlett-Packard              2
 	@Test
 	void test46() {
 		var listFabs = fabRepo.findAll();
-		//TODO
+		var result = listFabs.stream()
+				.flatMap(f -> f.getProductos().stream()
+						.filter(p -> p.getPrecio() >= f.getProductos().stream()
+								.mapToDouble(Producto::getPrecio
+								).average()
+								.orElse(0))
+						.map(p -> new Object() {
+							String nombreFabricante = f.getNombre();
+							String nombreProducto = p.getNombre();
+							double precioProducto = p.getPrecio();
+						})
+				)
+				.sorted(comparing(f -> f.nombreFabricante))
+				.toList();
+
 	}
 
 }
