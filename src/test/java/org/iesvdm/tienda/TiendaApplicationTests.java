@@ -877,21 +877,32 @@ Hewlett-Packard              2
 	@Test
 	void test46() {
 		var listFabs = fabRepo.findAll();
+
 		var result = listFabs.stream()
+				.filter(f -> !f.getProductos().isEmpty())
 				.flatMap(f -> f.getProductos().stream()
 						.filter(p -> p.getPrecio() >= f.getProductos().stream()
-								.mapToDouble(Producto::getPrecio
-								).average()
+								.mapToDouble(Producto::getPrecio)
+								.average()
 								.orElse(0))
-						.map(p -> new Object() {
-							String nombreFabricante = f.getNombre();
-							String nombreProducto = p.getNombre();
-							double precioProducto = p.getPrecio();
+						.map(p -> new Object[] {
+								f.getNombre(),
+								p.getNombre(),
+								p.getPrecio()
 						})
 				)
-				.sorted(comparing(f -> f.nombreFabricante))
+				.sorted(Comparator.comparing((Object[] arr) -> (String) arr[0])
+						.thenComparing((Object[] arr) -> (Double) arr[2], Comparator.reverseOrder()))
 				.toList();
 
+		// Imprimir los resultados
+		result.forEach(arr -> {
+			String nombreFabricante = (String) arr[0];
+			String nombreProducto = (String) arr[1];
+			double precioProducto = (Double) arr[2];
+
+			System.out.printf("Fabricante: %s, Producto: %s, Precio: %.2f%n", nombreFabricante, nombreProducto, precioProducto);
+		});
 	}
 
 }
