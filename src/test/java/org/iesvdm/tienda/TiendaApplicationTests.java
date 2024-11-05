@@ -795,7 +795,7 @@ Hewlett-Packard              2
 		var result = listFabs.stream()
 				.map(p -> new Object() {
 					String nombreFab = p.getNombre();
-					long numProductos = p.getProductos().stream().filter(p -> p.getPrecio() >= 220).count();
+					long numProductos = p.getProductos().stream().filter(p1 -> p1.getPrecio() >= 220).count();
 				})
 				.filter(o -> o.numProductos > 0)
 				.sorted(comparing(f -> f.numProductos,reverseOrder()))
